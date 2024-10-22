@@ -1,0 +1,311 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+####################
+# Project Metadata #
+####################
+
+[project]
+name = "alphafoldfetch"
+description = "Download AlphaFold predictions from FASTA files."
+readme = "README.md"
+requires-python = ">=3.12"# only license identifier from https://spdx.org/licenses/ are allowed
+license = { text = "MIT"}
+# keywords for easier look-up on PyPI
+keywords = ["keyword_1", "keyword_2"] # ToDo: Modify according to your needs!
+authors = [
+    { name = "Edgar Manriquez-Sandoval", email = "emanriq1@jhu.edu" },
+]
+# options under https://pypi.org/classifiers/
+classifiers = [ # ToDo: Modify according to your needs!
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+# direct dependencies of this package, installed when users `pip install alphafoldfetch` later.
+dependencies = [ # ToDo: Modify according to your needs!
+    "typer",
+    # "numpy",
+    # "matplotlib",
+    # "seaborn",
+]
+dynamic = ["version"]
+
+[project.scripts]
+# Use `fibonacci` as command-line script, comment or remove this section if not needed.
+fibonacci = "alphafoldfetch.skeleton:app"
+
+[project.urls]
+# important URLs for this project
+# ToDo: Modify according to your needs!
+Documentation = "https://github.com/mansanlab/alphafoldfetch"
+Source = "https://github.com/mansanlab/alphafoldfetch"
+# Tracker = "https://github.com/mansanlab/alphafoldfetch/issues"
+# Sponsor = "https://github.com/sponsors/mansanlab"
+
+######################
+# Build & Versioning #
+######################
+
+[tool.hatch.metadata]
+# direct dependency references, e.g `pip @ git+https://github.com/pypa/pip.git@master`
+allow-direct-references = true
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { version_scheme = "no-guess-dev" }
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/alphafoldfetch/_version.py"
+
+[tool.hatch.build]
+packages = ["src/alphafoldfetch"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.github",
+]
+
+##################
+# External Tools #
+##################
+
+[tool.mypy]
+files = ["src/alphafoldfetch", "tests"]
+disallow_untyped_defs = false
+follow_imports = "normal" # "silent" for not following
+ignore_missing_imports = true
+pretty = true
+show_column_numbers = true
+warn_no_return = false
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --doctest-glob='*.md'"
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/alphafoldfetch"]
+omit = [
+    "_version.py",  # automatically created by hatch-vcs, not in repo
+]
+
+[tool.coverage.paths]
+source = [
+    "src/",
+    "*/site-packages/",
+]
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self\\.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.ruff]
+target-version = "py312" # ToDo: Modify according to your needs!
+line-length = 120
+indent-width = 4
+include = [
+    "src/**/*.py",
+    "src/**/*.pyi",
+    "tests/**/*.py",
+    "tests/**/*.pyi"
+]
+
+[tool.ruff.lint]
+preview = true # preview features & checks, use with caution
+extend-select = [ # features in preview
+    "W292", # missing-newline-at-end-of-file
+]
+select = [
+    "A",
+    "B",
+    "C",
+    "DTZ",
+    "E",
+    "EM",
+    "F",
+    "FBT", # Boolean trap
+    "I",
+    "ICN",
+    "ISC",
+    "N",
+    "PLC",
+    "PLE",
+    "PLR",
+    "PLW",
+    "Q",
+    "RUF",
+    "S",
+    "SIM",
+    "T",
+    "TID",
+    "UP",
+    "W",
+    "YTT",
+    "RUF100", # Automatically remove unused # noqa directives
+]
+ignore = [
+    # Allow non-abstract empty methods in abstract base classes
+    "B027",
+    # Allow boolean positional values in function calls, like `dict.get(... True)`
+    "FBT003",
+    # Ignore checks for possible passwords
+    "S105", "S106", "S107",
+    # Ignore complexity
+    "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+    "PLC1901", # empty string comparisons
+    "PLW2901", # `for` loop variable overwritten
+    "SIM114", # Combine `if` branches using logical `or` operator
+    "E203", # Whitespace before :, needed for black compatability and also `ruff format`
+    "ISC001", # causes unexpected behaviour with formatter
+]
+unfixable = [
+    # "F401",  # Don't touch unused imports
+]
+
+[tool.ruff.format]
+quote-style = "single" # be more like black
+
+[tool.ruff.lint.isort]
+known-first-party = ["alphafoldfetch"]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.per-file-ignores]
+# Allow print/pprint
+"examples/*" = ["T201"]
+# Tests can use magic values, assertions, and relative imports
+"tests/**/*" = ["PLR2004", "S101", "TID252"]
+
+
+#####################
+# Environment Setup #
+#####################
+
+# Default environment with production dependencies
+[tool.hatch.envs.default]
+python = "3.12"
+post-install-commands = ["pre-commit install"]
+dependencies = []
+
+# Test environment with test-only dependencies
+[tool.hatch.envs.test]
+dependencies = [
+    # required test dependencies
+    "coverage[toml]>=6.2",
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-vcr",
+    "pytest-sugar",
+    # additional test & development dependencies
+    # ToDo: Modify according to your needs!
+    "hypothesis",
+    "jupyterlab",
+    "ipython",
+    "seaborn",
+    "pandas",
+]
+[tool.hatch.envs.test.scripts]
+cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src/alphafoldfetch --cov=tests {args}"
+no-cov = "cov --no-cov {args}"
+debug =  "cov --no-cov -s --pdb --pdbcls=IPython.core.debugger:Pdb {args}"
+
+# Docs environment
+[tool.hatch.envs.docs]
+dependencies = [
+    "mkdocs~=1.6",
+    "mkdocs-material[imaging]~=9.4",
+    # Plugins
+    "mkdocs-include-markdown-plugin",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
+    "mkdocs-minify-plugin~=0.8",
+    "mkdocs-section-index",
+    "mkdocs-git-revision-date-localized-plugin~=1.2",
+    "mkdocstrings[python]",
+    "mkdocs-redirects~=1.2",
+    "mkdocs-glightbox~=0.4.0",
+    "mike~=2.1",
+    # Extensions
+    "pymdown-extensions~=10.9",
+    # Necessary for syntax highlighting in code blocks
+    "pygments~=2.18",
+    # Validation
+    "linkchecker~=10.4",
+    ]
+[tool.hatch.envs.docs.env-vars]
+SOURCE_DATE_EPOCH = "1580601600"
+PYTHONUNBUFFERED = "1"
+MKDOCS_CONFIG = "mkdocs.yml"
+[tool.hatch.envs.docs.scripts]
+build = "mkdocs build --config-file {env:MKDOCS_CONFIG} --clean --strict {args}"
+serve = "mkdocs serve --config-file {env:MKDOCS_CONFIG} --dev-addr localhost:8000 {args}"
+ci-build = "mike deploy --config-file {env:MKDOCS_CONFIG} --update-aliases {args}"
+# --ignore-url=None since the SUMMARY.md file leaves a <toc>None</toc> in sitemap.xml
+validate = "linkchecker --config .linkcheckerrc --ignore-url=/reference --ignore-url=None site"
+# https://github.com/linkchecker/linkchecker/issues/678
+build-check = [
+    "build",
+    "validate",
+]
+
+# Lint environment
+[tool.hatch.envs.lint]
+template = "lint"  # don't inherit from default!
+dependencies = [
+    "mypy==1.11.1",
+    "ruff==0.5.7",
+]
+[tool.hatch.envs.lint.scripts]
+typing = [
+    "echo \"VERSION: `mypy --version`\"",
+    "mypy --install-types --non-interactive {args}"
+]
+style = [
+    "echo \"VERSION: `ruff --version`\"",
+    "ruff check {args:.}",
+    "ruff format --check {args:.}",
+]
+fix = [
+    "ruff format {args:.}",
+    "ruff check --fix {args:.}",
+    "style",  # feedback on what is not fixable
+]
+all = [
+    "style",
+    "typing",
+]
+
+# Test matrix for various Python versions replacing the functionality of tox
+[[tool.hatch.envs.py-test.matrix]]
+template = ["test"]
+python = ["310", "311", "312"]
