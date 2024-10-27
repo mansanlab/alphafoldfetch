@@ -15,7 +15,11 @@ AlphaFoldFetch uses UniProt IDs and UniProt-formatted FASTA files to query Alpha
 ## Install
 
 ```bash
-pip install alphafoldfetch
+git clone https://github.com/mansanlab/alphafoldfetch
+
+cd alphafoldfetch
+
+pip install .
 ```
 
 ## Usage
