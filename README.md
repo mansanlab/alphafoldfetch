@@ -45,7 +45,7 @@ affetch P11388
 
 Multiple AlphaFold structures
 ```bash
-affetch P11388 Q01320 P41516 
+affetch P11388 Q01320 P41516
 ```
 
 Structures from a single UniProt FASTA file
