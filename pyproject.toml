@@ -7,18 +7,18 @@ build-backend = "hatchling.build"
 ####################
 
 [project]
-name = "alphafoldfetch"
-description = "Download AlphaFold predictions from FASTA files."
+name = "AlphaFoldFetch"
+description = "A tool for downloading AlphaFold structures using UniProt IDs or FASTA files"
 readme = "README.md"
-requires-python = ">=3.12"# only license identifier from https://spdx.org/licenses/ are allowed
+requires-python = ">=3.10"# only license identifier from https://spdx.org/licenses/ are allowed
 license = { text = "MIT"}
 # keywords for easier look-up on PyPI
-keywords = ["keyword_1", "keyword_2"] # ToDo: Modify according to your needs!
+keywords = ["alphafold", "download", "get", "fetch", "fasta", "file"]
 authors = [
     { name = "Edgar Manriquez-Sandoval", email = "emanriq1@jhu.edu" },
 ]
 # options under https://pypi.org/classifiers/
-classifiers = [ # ToDo: Modify according to your needs!
+classifiers = [ 
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.10",
@@ -27,21 +27,17 @@ classifiers = [ # ToDo: Modify according to your needs!
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 # direct dependencies of this package, installed when users `pip install alphafoldfetch` later.
-dependencies = [ # ToDo: Modify according to your needs!
+dependencies = [ 
     "typer",
-    # "numpy",
-    # "matplotlib",
-    # "seaborn",
+    "asyncio",
+    "aiohttp"
 ]
 dynamic = ["version"]
 
 [project.scripts]
-# Use `fibonacci` as command-line script, comment or remove this section if not needed.
-fibonacci = "alphafoldfetch.skeleton:app"
+affetch = "affetch.main:app"
 
 [project.urls]
-# important URLs for this project
-# ToDo: Modify according to your needs!
 Documentation = "https://github.com/mansanlab/alphafoldfetch"
 Source = "https://github.com/mansanlab/alphafoldfetch"
 # Tracker = "https://github.com/mansanlab/alphafoldfetch/issues"
@@ -60,10 +56,10 @@ source = "vcs"
 raw-options = { version_scheme = "no-guess-dev" }
 
 [tool.hatch.build.hooks.vcs]
-version-file = "src/alphafoldfetch/_version.py"
+version-file = "affetch/_version.py"
 
 [tool.hatch.build]
-packages = ["src/alphafoldfetch"]
+packages = ["affetch"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
@@ -75,7 +71,7 @@ exclude = [
 ##################
 
 [tool.mypy]
-files = ["src/alphafoldfetch", "tests"]
+files = ["affetch", "tests"]
 disallow_untyped_defs = false
 follow_imports = "normal" # "silent" for not following
 ignore_missing_imports = true
@@ -93,14 +89,14 @@ testpaths = [
 
 [tool.coverage.run]
 branch = true
-source = ["src/alphafoldfetch"]
+source = ["affetch"]
 omit = [
     "_version.py",  # automatically created by hatch-vcs, not in repo
 ]
 
 [tool.coverage.paths]
 source = [
-    "src/",
+    "affetch/",
     "*/site-packages/",
 ]
 
@@ -129,8 +125,8 @@ target-version = "py312" # ToDo: Modify according to your needs!
 line-length = 120
 indent-width = 4
 include = [
-    "src/**/*.py",
-    "src/**/*.pyi",
+    "affetch/*.py",
+    "affetch/*.pyi",
     "tests/**/*.py",
     "tests/**/*.pyi"
 ]
@@ -191,7 +187,7 @@ unfixable = [
 quote-style = "single" # be more like black
 
 [tool.ruff.lint.isort]
-known-first-party = ["alphafoldfetch"]
+known-first-party = ["affetch"]
 
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
@@ -235,7 +231,7 @@ dependencies = [
     "pandas",
 ]
 [tool.hatch.envs.test.scripts]
-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src/alphafoldfetch --cov=tests {args}"
+cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=affetch --cov=tests {args}"
 no-cov = "cov --no-cov {args}"
 debug =  "cov --no-cov -s --pdb --pdbcls=IPython.core.debugger:Pdb {args}"
 

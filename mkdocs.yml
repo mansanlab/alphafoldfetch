@@ -1,6 +1,6 @@
 # Project information
 site_name: AlphaFoldFetch
-site_description: Download AlphaFold predictions from FASTA files.
+site_description: Download AlphaFold structures from FASTA files or UniProt IDs
 site_author: Edgar Manriquez-Sandoval
 site_url: https://github.com/mansanlab/alphafoldfetch
 copyright: 'Copyright &copy; Edgar Manriquez-Sandoval 2024-present'

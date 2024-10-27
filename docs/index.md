@@ -1,6 +1,6 @@
 # ​AlphaFoldFetch
 
-Download AlphaFold predictions from FASTA files.
+A tool for downloading AlphaFold structures using UniProt IDs or FASTA files
 
 ## Navigation
 

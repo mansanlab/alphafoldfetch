@@ -1,39 +1,98 @@
 # AlphaFoldFetch
 
-Download AlphaFold predictions from FASTA files.
+A tool for downloading AlphaFold structures using UniProt IDs or FASTA files
 
-## Features
+## What is AlphaFoldFetch?
 
-* Feature 1
-* Feature 2
-* ...
+AlphaFoldFetch is a command-line tool for downloading protein structural predictions from DeepMind's AlphaFold using UniProt IDs or FASTA files as input.
 
-## Development
+This tool is handy for getting structures for proteomes that are unavailable on AlphaFold's bulk download page.
 
-To set up [hatch] and [pre-commit] for the first time:
+### How does it work?
 
-1. install [hatch] globally, e.g. with [pipx], i.e. `pipx install hatch`,
-2. make sure `pre-commit` is installed globally, e.g. with `pipx install pre-commit`.
+AlphaFoldFetch uses UniProt IDs and UniProt-formatted FASTA files to query AlphaFold's API and download structures within your terminal! You can specify the protein structure file type (PDB or CIF), whether your files are zipped or not (.gz), the AlphaFold model to access (v1–4), and download parameters to optimize large queries (>10,000 entries).
 
-A special feature that makes hatch very different from other familiar tools is that you almost never
-activate, or enter, an environment. Instead, you use `hatch run env_name:command` and the `default` environment
-is assumed for a command if there is no colon found. Thus you must always define your environment in a declarative
-way and hatch makes sure that the environment reflects your declaration by updating it whenever you issue
-a `hatch run ...`. This helps with reproducability and avoids forgetting to specify dependencies since the
-hatch workflow is to specify everything directly in [pyproject.toml](pyproject.toml). Only in rare cases, you
-will use `hatch shell` to enter the `default` environment, which is similar to what you may know from other tools.
+## Install
 
-To get you started, use `hatch run test:cov` or `hatch run test:no-cov` to run the unitest with or without coverage reports,
-respectively. Use `hatch run lint:all` to run all kinds of typing and linting checks. Try to automatically fix linting
-problems with `hatch run lint:fix` and use `hatch run docs:serve` to build and serve your documentation.
-You can also easily define your own environments and commands. Check out the environment setup of hatch
-in [pyproject.toml](pyproject.toml) for more commands as well as the package, build and tool configuration.
+```bash
+pip install alphafoldfetch
+```
 
-## Credits
+## Usage
 
-This package was created with [The Hatchlor] project template.
+```bash
+affetch [OPTIONS] UNIPROT...
+```
 
+|Arguments  |Details                       |
+|:----------|:-----------------------------|
+|`UNIPROT`  |UniProt ID(s) or FASTA file(s)|
+
+|Options            |Details                                          |
+|:------------------|:------------------------------------------------|
+|`--output`, `-o`   |Output directory                                 |
+|`--file-type`, `-f`|File type(s), `p` = .pdb, `c` = .cif, `z` = *.gz |
+|`--model`, `-m`    |AlphaFold model version, `1`, `2`, `3`, `4`      |
+|`--n-sync`         |Syncronized number of downloads, Default = `50`  |
+|`--n-save`         |Concurrent number of file writes, Default = `500`|
+
+### Examples
+
+Single AlphaFold structure
+```bash
+affetch P11388
+```
+
+Multiple AlphaFold structures
+```bash
+affetch P11388 Q01320 P41516 
+```
+
+Structures from a single UniProt FASTA file
+```bash
+affetch UP000005640_9606.fasta
+```
+
+Multiple UniProt FASTA files
+```bash
+affetch UP000007305_4577.fasta UP000005640_9606.fasta UP000000625_83333.fasta
+```
+*First obtain these FASTA files from UniProt*
+
+Multiple custom FASTA files
+```bash
+affetch plant_pgks.fasta mammalian_pgks.fasta bacterial_pgks.fasta
+```
+*Input files must be in the UniProt FASTA file format*
+
+Unzipped PDB file
+```bash
+affetch -f p P11388
+```
+*Default will dowload zipped PDB and CIF files for all entries*
+
+Redirect output to a directory
+```bash
+mkdir human_top2a && affetch -o ./human_top2a P11388
+```
+
+Don't know the UniProt ID? Use [getSequence] and pipe into `affetch`
+```bash
+getseq human top2a, mouse top2a, rat top2a | affetch -
+```
+*Pipe input arguments must be indicated with a dash `-`*
+
+## Development TODOs
+
+These are some of the much need improvements that I plan to implement in the next release
+
+* Add unit tests
+
+Annoying bug in `Typer` that breaks path completion with the `-o` option: [Typer Issue 951](https://github.com/fastapi/typer/issues/951)
+
+### Credits
+
+Inspired by [getSequence], created with [The Hatchlor] template.
+
+[getSequence]: https://github.com/alexholehouse/getSequence
 [The Hatchlor]: https://github.com/florianwilhelm/the-hatchlor
-[pipx]: https://pypa.github.io/pipx/
-[hatch]: https://hatch.pypa.io/
-[pre-commit]: https://pre-commit.com/
