@@ -41,13 +41,16 @@ def chunk_urls(urls: list, n: int) -> Generator:
     for i in range(0, len(urls), n):
         yield urls[i : i + n]
 
+
 def alphafold_api_url(uniprot: str) -> str:
     """ Create AlphaFold API URLs """
     return f'{ALPHAFOLD_API_URL}{uniprot}?key={API_KEY}'
 
+
 def alphfold_file_url(uniprot: str, model: int, file: str) -> str:
     """ Create AlphaFold structure file URLs """
     return f'{ALPHAFOLD_FILE_URL}AF-{uniprot}-F1-model_v{model}.{file}'
+
 
 def parse_uniprot(uniprot: str) -> str:
     """ Parse UniProt IDs with regular expressions """
@@ -56,9 +59,11 @@ def parse_uniprot(uniprot: str) -> str:
         return uniprot_match.group()
     return ''
 
+
 def validate_uniprot_id(uniprot: str) -> bool:
     """ Validate UniProt IDs with regular expressions """
     return re.fullmatch(UNIPROT_RE, uniprot) is not None
+
 
 def validate_fasta(fasta: str) -> list[str]:
     """ Read a FASTA file and return only valid UniProt IDs """
@@ -72,14 +77,17 @@ def validate_fasta(fasta: str) -> list[str]:
 
     return uniprot_ids
 
+
 def write_structure(file_path: Path, structure: str) -> None:
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(structure)
+
 
 def write_gz_structure(file_path: Path, structure: str) -> None:
     file_path = Path(f'{file_path}.gz')
     with gzip.open(file_path, 'wb') as f:
         f.write(structure.encode('utf-8'))
+
 
 async def alphafold_api_coroutine(
         session: aiohttp.ClientSession,
@@ -91,6 +99,7 @@ async def alphafold_api_coroutine(
         if response.status == http.HTTPStatus.OK:
             results[url] = await response.text()
 
+
 async def alphafold_api_call(
         sem: asyncio.Semaphore,
         urls: list[str],
@@ -99,6 +108,7 @@ async def alphafold_api_call(
     async with aiohttp.ClientSession() as session:
         tasks = [alphafold_api_coroutine(session, sem, url, results) for url in urls]
         await asyncio.gather(*tasks)
+
 
 async def alphafold_api(
         urls: list[str],
@@ -121,6 +131,7 @@ NSave = typer.Option(500, help='Concurrent number of file writes, lower value = 
 @app.command()
 def affetch(
     uniprot: list[str] = Uniprot,
+    *,
     output: Path = Output,
     file_type: str = FileType,
     model: int = Model,

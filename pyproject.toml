@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 ####################
@@ -8,6 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "AlphaFoldFetch"
+version = "0.0.1"
 description = "A tool for downloading AlphaFold structures using UniProt IDs or FASTA files"
 readme = "README.md"
 requires-python = ">=3.10"# only license identifier from https://spdx.org/licenses/ are allowed
@@ -32,7 +33,6 @@ dependencies = [
     "asyncio",
     "aiohttp"
 ]
-dynamic = ["version"]
 
 [project.scripts]
 affetch = "affetch.main:app"
@@ -48,15 +48,7 @@ Source = "https://github.com/mansanlab/alphafoldfetch"
 ######################
 
 [tool.hatch.metadata]
-# direct dependency references, e.g `pip @ git+https://github.com/pypa/pip.git@master`
 allow-direct-references = true
-
-[tool.hatch.version]
-source = "vcs"
-version_scheme = "standard"
-
-[tool.hatch.build.hooks.vcs]
-version-file = "affetch/_version.py"
 
 [tool.hatch.build]
 packages = ["affetch"]
@@ -209,7 +201,10 @@ ban-relative-imports = "all"
 # Default environment with production dependencies
 [tool.hatch.envs.default]
 python = "3.12"
-post-install-commands = ["pre-commit install"]
+post-install-commands = [
+    "pre-commit install",
+    "echo '__version__ = \"{project.version}\"' > affetch/__version__.py"
+]
 dependencies = []
 
 # Test environment with test-only dependencies
@@ -222,18 +217,7 @@ dependencies = [
     "pytest-mock",
     "pytest-vcr",
     "pytest-sugar",
-    # additional test & development dependencies
-    # ToDo: Modify according to your needs!
-    "hypothesis",
-    "jupyterlab",
-    "ipython",
-    "seaborn",
-    "pandas",
 ]
-[tool.hatch.envs.test.scripts]
-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=affetch --cov=tests {args}"
-no-cov = "cov --no-cov {args}"
-debug =  "cov --no-cov -s --pdb --pdbcls=IPython.core.debugger:Pdb {args}"
 
 # Docs environment
 [tool.hatch.envs.docs]
