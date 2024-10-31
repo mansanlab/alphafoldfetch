@@ -1,3 +1,5 @@
+[AlphaFoldFetch Dog](docs/assets/images/affetch_logo.png)
+
 # AlphaFoldFetch
 
 A tool for downloading AlphaFold structures using UniProt IDs or FASTA files
