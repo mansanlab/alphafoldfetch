@@ -1,4 +1,4 @@
-[AlphaFoldFetch Dog](docs/assets/images/affetch_logo.png)
+![AlphaFoldFetch Dog](docs/assets/images/affetch_logo.png)
 
 # AlphaFoldFetch
 
