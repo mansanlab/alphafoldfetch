@@ -78,6 +78,11 @@ Redirect output to a directory
 mkdir human_top2a && affetch -o ./human_top2a P11388
 ```
 
+EBI AlphaFold Download data - Search Results CSV File
+```bash
+tail -n +2 results-csv.csv | while IFS='-' read -r f1 f2 f3; do echo $f2; done | affetch -
+```
+
 Don't know the UniProt ID? Use [getSequence] and pipe into `affetch`
 ```bash
 getseq human top2a, mouse top2a, rat top2a | affetch -
@@ -90,7 +95,7 @@ These are some of the much need improvements that I plan to implement in the nex
 
 * Add unit tests
 
-Annoying bug in `Typer` that breaks path completion with the `-o` option: [Typer Issue 951](https://github.com/fastapi/typer/issues/951)
+Resolved: Annoying bug in `Typer` that breaks path completion with the `-o` option: [Typer Issue 951](https://github.com/fastapi/typer/issues/951)
 
 ### Credits
 
