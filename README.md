@@ -114,6 +114,9 @@ getseq human top2a, mouse top2a, rat top2a | affetch -
 ```
 *Pipe input arguments must be indicated with a dash `-`*
 
+
+For more information, read the [docs](https://mansanlab.github.io/alphafoldfetch/)
+
 ## Credits
 
 Inspired by [getSequence](https://github.com/alexholehouse/getSequence).

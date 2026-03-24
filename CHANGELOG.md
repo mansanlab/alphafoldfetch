@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## Version 1.0.0
 
 - Switched the project to a `uv`-native workflow with `uv_build`, dependency groups, and a refreshed lockfile.
 - Modernized `pyproject.toml` metadata and tool configuration for the current package layout.
