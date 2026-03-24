@@ -1,37 +1,31 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-####################
-# Project Metadata #
-####################
+requires = ["uv_build>=0.11.0,<0.12"]
+build-backend = "uv_build"
 
 [project]
 name = "AlphaFoldFetch"
-version = "0.0.1"
+version = "1.0.0"
 description = "A tool for downloading AlphaFold structures using UniProt IDs or FASTA files"
 readme = "README.md"
-requires-python = ">=3.10"# only license identifier from https://spdx.org/licenses/ are allowed
-license = { text = "MIT"}
-# keywords for easier look-up on PyPI
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE.txt"]
 keywords = ["alphafold", "download", "get", "fetch", "fasta", "file"]
 authors = [
-    { name = "Edgar Manriquez-Sandoval", email = "emanriq1@jhu.edu" },
+    { name = "Edgar Manriquez-Sandoval", email = "mansanlab@gmail.com" },
 ]
-# options under https://pypi.org/classifiers/
-classifiers = [ 
+classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
-# direct dependencies of this package, installed when users `pip install alphafoldfetch` later.
-dependencies = [ 
-    "typer",
-    "asyncio",
-    "aiohttp"
+dependencies = [
+    "aiohttp>=3.9,<4",
+    "typer>=0.12,<1",
 ]
 
 [project.scripts]
@@ -39,28 +33,54 @@ affetch = "affetch.main:app"
 
 [project.urls]
 Documentation = "https://github.com/mansanlab/alphafoldfetch"
+Issues = "https://github.com/mansanlab/alphafoldfetch/issues"
 Source = "https://github.com/mansanlab/alphafoldfetch"
-# Tracker = "https://github.com/mansanlab/alphafoldfetch/issues"
-# Sponsor = "https://github.com/sponsors/mansanlab"
 
-######################
-# Build & Versioning #
-######################
-
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.build]
-packages = ["affetch"]
-
-[tool.hatch.build.targets.sdist]
-exclude = [
-    "/.github",
+[dependency-groups]
+dev = [
+    "pre-commit",
+    { include-group = "lint" },
+    { include-group = "test" },
+]
+lint = [
+    "mypy==1.11.1",
+    "ruff==0.5.7",
+    "types-cachetools",
+    "types-tabulate",
+]
+test = [
+    "coverage[toml]>=6.2",
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-vcr",
+    "pytest-sugar",
+]
+docs = [
+    "mkdocs~=1.6",
+    "mkdocs-material[imaging]~=9.4",
+    "mkdocs-include-markdown-plugin",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
+    "mkdocs-minify-plugin~=0.8",
+    "mkdocs-section-index",
+    "mkdocs-git-revision-date-localized-plugin~=1.2",
+    "mkdocstrings[python]",
+    "mkdocs-redirects~=1.2",
+    "mkdocs-glightbox~=0.4.0",
+    "mike~=2.1",
+    "pymdown-extensions~=10.9",
+    "pygments~=2.18",
+    "linkchecker~=10.4",
 ]
 
-##################
-# External Tools #
-##################
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.uv.build-backend]
+module-name = "affetch"
+module-root = ""
+source-exclude = ["/.github"]
 
 [tool.mypy]
 files = ["affetch", "tests"]
@@ -75,59 +95,37 @@ warn_unused_ignores = true
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q --doctest-glob='*.md'"
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
 source = ["affetch"]
-omit = [
-    "_version.py",  # automatically created by hatch-vcs, not in repo
-]
+omit = ["_version.py"]
 
 [tool.coverage.paths]
-source = [
-    "affetch/",
-    "*/site-packages/",
-]
+source = ["affetch/", "*/site-packages/"]
 
 [tool.coverage.report]
-# Regexes for lines to exclude from consideration
 exclude_lines = [
-    # Have to re-enable the standard pragma
     "pragma: no cover",
-
-    # Don't complain about missing debug-only code:
     "def __repr__",
     "if self\\.debug",
-
-    # Don't complain if tests don't hit defensive assertion code:
     "raise AssertionError",
     "raise NotImplementedError",
-
-    # Don't complain if non-runnable code isn't run:
     "if 0:",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
 ]
 
 [tool.ruff]
-target-version = "py312" # ToDo: Modify according to your needs!
 line-length = 120
 indent-width = 4
-include = [
-    "affetch/*.py",
-    "affetch/*.pyi",
-    "tests/**/*.py",
-    "tests/**/*.pyi"
-]
+src = ["affetch", "tests"]
+include = ["affetch/*.py", "affetch/*.pyi", "tests/**/*.py", "tests/**/*.pyi"]
 
 [tool.ruff.lint]
-preview = true # preview features & checks, use with caution
-extend-select = [ # features in preview
-    "W292", # missing-newline-at-end-of-file
-]
+preview = true
+extend-select = ["W292"]
 select = [
     "A",
     "B",
@@ -154,29 +152,24 @@ select = [
     "UP",
     "W",
     "YTT",
-    "RUF100", # Automatically remove unused # noqa directives
+    "RUF100",
 ]
 ignore = [
-    # Allow non-abstract empty methods in abstract base classes
     "B027",
-    # Allow boolean positional values in function calls, like `dict.get(... True)`
     "FBT003",
-    # Ignore checks for possible passwords
-    "S105", "S106", "S107",
-    # Ignore complexity
+    "S105",
+    "S106",
+    "S107",
     "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
-    "PLC1901", # empty string comparisons
-    "PLW2901", # `for` loop variable overwritten
-    "SIM114", # Combine `if` branches using logical `or` operator
-    "E203", # Whitespace before :, needed for black compatability and also `ruff format`
-    "ISC001", # causes unexpected behaviour with formatter
-]
-unfixable = [
-    # "F401",  # Don't touch unused imports
+    "PLC1901",
+    "PLW2901",
+    "SIM114",
+    "E203",
+    "ISC001",
 ]
 
 [tool.ruff.format]
-quote-style = "single" # be more like black
+quote-style = "single"
 
 [tool.ruff.lint.isort]
 known-first-party = ["affetch"]
@@ -188,104 +181,5 @@ inline-quotes = "single"
 ban-relative-imports = "all"
 
 [tool.ruff.lint.per-file-ignores]
-# Allow print/pprint
 "examples/*" = ["T201"]
-# Tests can use magic values, assertions, and relative imports
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
-
-
-#####################
-# Environment Setup #
-#####################
-
-# Default environment with production dependencies
-[tool.hatch.envs.default]
-python = "3.12"
-post-install-commands = [
-    "pre-commit install",
-    "echo '__version__ = \"{project.version}\"' > affetch/__version__.py"
-]
-dependencies = []
-
-# Test environment with test-only dependencies
-[tool.hatch.envs.test]
-dependencies = [
-    # required test dependencies
-    "coverage[toml]>=6.2",
-    "pytest",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-vcr",
-    "pytest-sugar",
-]
-
-# Docs environment
-[tool.hatch.envs.docs]
-dependencies = [
-    "mkdocs~=1.6",
-    "mkdocs-material[imaging]~=9.4",
-    # Plugins
-    "mkdocs-include-markdown-plugin",
-    "mkdocs-gen-files",
-    "mkdocs-literate-nav",
-    "mkdocs-minify-plugin~=0.8",
-    "mkdocs-section-index",
-    "mkdocs-git-revision-date-localized-plugin~=1.2",
-    "mkdocstrings[python]",
-    "mkdocs-redirects~=1.2",
-    "mkdocs-glightbox~=0.4.0",
-    "mike~=2.1",
-    # Extensions
-    "pymdown-extensions~=10.9",
-    # Necessary for syntax highlighting in code blocks
-    "pygments~=2.18",
-    # Validation
-    "linkchecker~=10.4",
-    ]
-[tool.hatch.envs.docs.env-vars]
-SOURCE_DATE_EPOCH = "1580601600"
-PYTHONUNBUFFERED = "1"
-MKDOCS_CONFIG = "mkdocs.yml"
-[tool.hatch.envs.docs.scripts]
-build = "mkdocs build --config-file {env:MKDOCS_CONFIG} --clean --strict {args}"
-serve = "mkdocs serve --config-file {env:MKDOCS_CONFIG} --dev-addr localhost:8000 {args}"
-ci-build = "mike deploy --config-file {env:MKDOCS_CONFIG} --update-aliases {args}"
-# --ignore-url=None since the SUMMARY.md file leaves a <toc>None</toc> in sitemap.xml
-validate = "linkchecker --config .linkcheckerrc --ignore-url=/reference --ignore-url=None site"
-# https://github.com/linkchecker/linkchecker/issues/678
-build-check = [
-    "build",
-    "validate",
-]
-
-# Lint environment
-[tool.hatch.envs.lint]
-template = "lint"  # don't inherit from default!
-dependencies = [
-    "mypy==1.11.1",
-    "ruff==0.5.7",
-]
-[tool.hatch.envs.lint.scripts]
-typing = [
-    "echo \"VERSION: `mypy --version`\"",
-    "mypy --install-types --non-interactive {args}"
-]
-style = [
-    "echo \"VERSION: `ruff --version`\"",
-    "ruff check {args:.}",
-    "ruff format --check {args:.}",
-]
-fix = [
-    "ruff format {args:.}",
-    "ruff check --fix {args:.}",
-    "style",  # feedback on what is not fixable
-]
-all = [
-    "style",
-    "typing",
-]
-
-# Test matrix for various Python versions replacing the functionality of tox
-[[tool.hatch.envs.py-test.matrix]]
-template = ["test"]
-python = ["310", "311", "312"]
