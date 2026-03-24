@@ -1,0 +1,9 @@
+<!--- Generic links available across docs pages -->
+[MIT]: https://spdx.org/licenses/MIT.html
+[git]: https://git-scm.com/
+[pre-commit]: https://pre-commit.com/
+[PyPI]: https://pypi.org/
+[repository]: https://github.com/mansanlab/alphafoldfetch
+[issue tracker]: https://github.com/mansanlab/alphafoldfetch/issues
+[mkdocs]: https://www.mkdocs.org/
+[uv]: https://docs.astral.sh/uv/
