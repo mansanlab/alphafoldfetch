@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.0.1
+
+- Updated github pages to compile correctly after removing some GitHub Actions.
+
 ## Version 1.0.0
 
 - Switched the project to a `uv`-native workflow with `uv_build`, dependency groups, and a refreshed lockfile.
