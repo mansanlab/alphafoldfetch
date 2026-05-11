@@ -1,100 +1,116 @@
 # Usage
 
-## CLI Summary
-
 ```bash
 affetch [OPTIONS] UNIPROT...
 ```
 
-Arguments:
+`UNIPROT...` can be UniProt accessions, FASTA files, strings containing UniProt accessions, or `-` for stdin.
 
-- `UNIPROT...`: UniProt IDs, FASTA files, or `-` for stdin
+## Options
 
-Options:
+| Option | Default | Description |
+| --- | --- | --- |
+| `--output`, `-o` | `.` | Existing directory where files are saved |
+| `--file-type`, `-f` | `pcz` | Output selector: `p` for PDB, `c` for CIF, `z` for gzip |
+| `--model`, `-m` | `6` | AlphaFold model version, `1` through `6` |
+| `--n-sync` | `50` | Concurrent download requests |
+| `--n-save` | `500` | File writes submitted per batch |
 
-- `--output`, `-o`: output directory
-- `--file-type`, `-f`: any combination of `p`, `c`, and `z`
-- `--model`, `-m`: AlphaFold model version `1` through `6`
-- `--n-sync`: concurrent download requests
-- `--n-save`: file writes submitted per batch
+Run `affetch --help` for the full Typer-generated help output.
 
-## Input Rules
+## Inputs
 
 AlphaFoldFetch accepts:
 
-- raw UniProt accessions like `P11388`
-- text that contains a valid UniProt accession
+- UniProt accessions like `P11388`
+- strings that contain a valid UniProt accession
 - FASTA files ending in `.fasta`, `.fas`, `.fa`, or `.faa`
 - `-` to read whitespace-separated input from stdin
 
-FASTA parsing only keeps validated UniProt IDs from header lines.
+FASTA parsing only scans header lines and keeps validated UniProt accessions.
 
-## Output Rules
+## Outputs
 
-The default file-type value is `pcz`, which means:
+The `--file-type` option combines three letters:
 
-- `p`: PDB output
-- `c`: CIF output
-- `z`: gzip compression
+- `p`: save PDB files
+- `c`: save CIF files
+- `z`: gzip the selected files
 
-So the default behavior downloads both PDB and CIF files as gzip outputs.
+The default `pcz` downloads gzipped PDB and CIF files:
+
+```text
+AF-P11388-F1-model_v6.pdb.gz
+AF-P11388-F1-model_v6.cif.gz
+```
+
+Common file-type choices:
+
+| Value | Result |
+| --- | --- |
+| `p` | Uncompressed PDB only |
+| `c` | Uncompressed CIF only |
+| `pc` | Uncompressed PDB and CIF |
+| `pz` | Gzipped PDB only |
+| `cz` | Gzipped CIF only |
+| `pcz` | Gzipped PDB and CIF |
+
+The output directory must already exist. Accessions without an available AlphaFold file are skipped.
 
 ## Examples
 
-Single AlphaFold structure
+Download one accession:
 
 ```bash
 affetch P11388
 ```
 
-Multiple AlphaFold structures
+Download several accessions:
 
 ```bash
 affetch P11388 Q01320 P41516
 ```
 
-Structures from a single UniProt FASTA file
+Save into an existing directory:
 
 ```bash
-affetch UP000005640_9606.fasta
+mkdir -p structures
+affetch -o structures P11388
 ```
 
-Multiple UniProt FASTA files
-
-```bash
-affetch UP000007305_4577.fasta UP000005640_9606.fasta UP000000625_83333.fasta
-```
-*First obtain these FASTA files from UniProt*
-
-Multiple custom FASTA files
-
-```bash
-affetch plant_pgks.fasta mammalian_pgks.fasta bacterial_pgks.fasta
-```
-*Input files must be in the UniProt FASTA file format*
-
-Unzipped PDB file
+Download an uncompressed PDB only:
 
 ```bash
 affetch -f p P11388
 ```
-*Default will dowload zipped PDB and CIF files for all entries*
 
-Redirect output to a directory
+Use a specific AlphaFold model version:
 
 ```bash
-mkdir human_top2a && affetch -o ./human_top2a P11388
+affetch --model 5 P11388
 ```
 
-EBI AlphaFold Download data - Search Results CSV File
+Download structures from FASTA files:
+
+```bash
+affetch UP000005640_9606.fasta
+affetch plant_pgks.fasta mammalian_pgks.fasta bacterial_pgks.fasta
+```
+
+Read accessions from stdin:
+
+```bash
+printf "P11388\nQ01320\n" | affetch -
+```
+
+From an AlphaFold DB search results CSV:
 
 ```bash
 tail -n +2 results-csv.csv | while IFS='-' read -r f1 f2 f3; do echo $f2; done | affetch -
 ```
 
-Don't know the UniProt ID? Use [getSequence](https://github.com/alexholehouse/getSequence) and pipe into `affetch`
+From [getSequence](https://github.com/alexholehouse/getSequence):
 
 ```bash
 getseq human top2a, mouse top2a, rat top2a | affetch -
 ```
-*Pipe input arguments must be indicated with a dash `-`*

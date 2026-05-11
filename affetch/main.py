@@ -20,6 +20,8 @@ UniProtId = str
 AlphaFoldUrl = str
 SUPPORTED_MODELS: Final[tuple[int, ...]] = (1, 2, 3, 4, 5, 6)
 SUPPORTED_MODEL_TEXT: Final[str] = ', '.join(str(model) for model in SUPPORTED_MODELS)
+SUPPORTED_FILE_TYPES: Final[frozenset[str]] = frozenset({'p', 'c', 'z'})
+STRUCTURE_FILE_TYPES: Final[frozenset[str]] = frozenset({'p', 'c'})
 ResultMap = dict[AlphaFoldUrl, str]
 StructureWriter = Callable[[Path, str], None]
 
@@ -45,10 +47,21 @@ UNIPROT_RE: Final[re.Pattern[str]] = re.compile(UNIPROT_RE_STR)
 FASTA_SUFFIX: Final[tuple[str, ...]] = ('.fasta', '.fas', '.fa', '.faa')
 
 
-def chunk_urls(urls: list[AlphaFoldUrl], n: int) -> Generator[list[AlphaFoldUrl], None, None]:
-    """Split a list of urls into chunks of size N"""
-    for i in range(0, len(urls), n):
-        yield urls[i : i + n]
+def chunk_urls(urls: Iterable[AlphaFoldUrl], n: int) -> Generator[list[AlphaFoldUrl], None, None]:
+    """Split URLs into chunks of size N."""
+    if n < 1:
+        message = 'Chunk size must be at least 1'
+        raise ValueError(message)
+
+    chunk: list[AlphaFoldUrl] = []
+    for url in urls:
+        chunk.append(url)
+        if len(chunk) == n:
+            yield chunk
+            chunk = []
+
+    if chunk:
+        yield chunk
 
 
 def alphafold_api_url(uniprot: UniProtId) -> AlphaFoldUrl:
@@ -79,6 +92,27 @@ def validate_uniprot_id(uniprot: str) -> bool:
     return re.fullmatch(UNIPROT_RE, uniprot) is not None
 
 
+def normalize_file_type(file_type: str) -> str:
+    """Normalize and validate file-type selector letters."""
+    normalized = file_type.lower()
+    invalid_options = sorted(set(normalized) - SUPPORTED_FILE_TYPES)
+    if invalid_options:
+        invalid_text = ', '.join(f'`{option}`' for option in invalid_options)
+        message = f'No valid file type options entered: --file-type contains unsupported option(s): {invalid_text}'
+        raise ValueError(message)
+
+    if STRUCTURE_FILE_TYPES.isdisjoint(normalized):
+        message = 'No valid file type options entered: --file-type must contain `p` and/or `c`'
+        raise ValueError(message)
+
+    return normalized
+
+
+def is_fasta_path(value: str) -> bool:
+    """Return whether a value should be treated as a FASTA input path."""
+    return Path(value).suffix.lower() in FASTA_SUFFIX
+
+
 def validate_fasta(fasta: str) -> list[UniProtId]:
     """Read a FASTA file and return only valid UniProt IDs"""
     uniprot_ids = []
@@ -103,6 +137,19 @@ def write_gz_structure(file_path: Path, structure: str) -> None:
         f.write(structure.encode('utf-8'))
 
 
+def save_structures(output: Path, structures: ResultMap, write_func: StructureWriter) -> None:
+    """Write downloaded structures and surface any worker-thread failures."""
+    with ThreadPoolExecutor() as executor:
+        futures = []
+        for url, structure in structures.items():
+            file_name = Path(url).name
+            file_path = output.joinpath(file_name)
+            futures.append(executor.submit(write_func, file_path, structure))
+
+        for future in futures:
+            future.result()
+
+
 async def alphafold_api_coroutine(
     session: aiohttp.ClientSession, sem: asyncio.Semaphore, url: str, results: ResultMap
 ) -> None:
@@ -125,11 +172,13 @@ async def alphafold_api(urls: list[str], n_sync: int) -> dict[str, str]:
 
 
 Uniprot: Final = typer.Argument(..., help='UniProt ID(s) or FASTA file(s)', allow_dash=True)
-Output: Final = typer.Option(Path('.'), '--output', '-o', help='Output directory', dir_okay=True, exists=True)
+Output: Final = typer.Option(
+    Path('.'), '--output', '-o', help='Output directory', dir_okay=True, file_okay=False, exists=True
+)
 FileType: Final = typer.Option('pcz', '--file-type', '-f', help='File type(s), `p` = .pdb, `c` = .cif, `z` = *.gz')
 Model: Final = typer.Option(6, '--model', '-m', help=f'AlphaFold model version, ({SUPPORTED_MODEL_TEXT})')
-NSync: Final = typer.Option(50, help='Syncronized number of downloads, lower value = slower download speed')
-NSave: Final = typer.Option(500, help='Concurrent number of file writes, lower value = slower write speed')
+NSync: Final = typer.Option(50, min=1, help='Synchronized number of downloads, lower value = slower download speed')
+NSave: Final = typer.Option(500, min=1, help='Concurrent number of file writes, lower value = slower write speed')
 
 
 @app.command()
@@ -142,15 +191,25 @@ def affetch(
     n_sync: int = NSync,
     n_save: int = NSave,
 ):
-    if not any(True for s in 'pc' if s in file_type):
-        typer.echo('No valid tile type options entered: --file-type must contain `p` and/or `c`', err=True)
+    try:
+        file_type = normalize_file_type(file_type)
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
         sys.exit(1)
 
     if model not in SUPPORTED_MODELS:
         typer.echo(f'No valid model options entered: --model must be one of {SUPPORTED_MODEL_TEXT}', err=True)
         sys.exit(1)
 
-    if not output.exists():
+    if n_sync < 1:
+        typer.echo('No valid n-sync option entered: --n-sync must be at least 1', err=True)
+        sys.exit(1)
+
+    if n_save < 1:
+        typer.echo('No valid n-save option entered: --n-save must be at least 1', err=True)
+        sys.exit(1)
+
+    if not output.is_dir():
         typer.echo(f'No directory named `{output.resolve()}` found', err=True)
         sys.exit(1)
 
@@ -159,9 +218,13 @@ def affetch(
         uniprot = [u.strip() for u in sys.stdin.read().split()]
 
     for u in uniprot:
-        if any(u.endswith(s) for s in FASTA_SUFFIX):
+        if is_fasta_path(u):
             # If the input is a file, parse it, validate it, and save it
-            uniprot_ids += validate_fasta(u)
+            try:
+                uniprot_ids += validate_fasta(u)
+            except OSError as exc:
+                typer.echo(f'Could not read FASTA file `{u}`: {exc}', err=True)
+                sys.exit(1)
             continue
 
         _u = u.upper()
@@ -193,11 +256,11 @@ def affetch(
     if 'z' in file_type:
         write_func = write_gz_structure
 
-    for urls in chunk_urls(list(uniprot_urls), n_save):
+    for urls in chunk_urls(uniprot_urls, n_save):
         structures = asyncio.run(alphafold_api(urls, n_sync))
 
-        with ThreadPoolExecutor() as executor:
-            for url, structure in structures.items():
-                file_name = Path(url).name
-                file_path = output.joinpath(file_name)
-                executor.submit(write_func, file_path, structure)
+        try:
+            save_structures(output, structures, write_func)
+        except OSError as exc:
+            typer.echo(f'Could not write structure files: {exc}', err=True)
+            sys.exit(1)

@@ -1,10 +1,16 @@
 # Installation
 
-Run it without installing:
+AlphaFoldFetch requires Python 3.11 or newer.
+
+## Run Without Installing
+
+Use `uvx` for a one-off command:
 
 ```bash
 uvx --from AlphaFoldFetch affetch P11388
 ```
+
+This is the fastest way to try the CLI.
 
 ## Install The CLI
 
@@ -14,21 +20,25 @@ Install AlphaFoldFetch with `uv`:
 uv tool install AlphaFoldFetch
 ```
 
-This installs the `affetch` command globally.
-
-## Verify
+Then verify that `affetch` is available:
 
 ```bash
 affetch --help
 ```
 
-Or:
+You can also inspect the help without installing:
 
 ```bash
 uvx --from AlphaFoldFetch affetch --help
 ```
 
-## Development Setup
+## Upgrade
+
+```bash
+uv tool upgrade AlphaFoldFetch
+```
+
+## Development Install
 
 For local project work:
 
@@ -36,3 +46,5 @@ For local project work:
 uv sync
 uv run pre-commit install
 ```
+
+See [Development](development.md) for test, lint, and docs commands.

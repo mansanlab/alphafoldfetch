@@ -1,8 +1,10 @@
 # Development
 
+Use this page when working on AlphaFoldFetch locally.
+
 ## Setup
 
-Install project dependencies with `uv`:
+Install dependencies:
 
 ```bash
 uv sync
@@ -14,7 +16,7 @@ Install pre-commit hooks once:
 uv run pre-commit install
 ```
 
-## Main Commands
+## Check Your Work
 
 Run tests:
 
@@ -22,7 +24,7 @@ Run tests:
 uv run pytest
 ```
 
-Run lint checks:
+Run lint and formatting checks:
 
 ```bash
 uv run ruff check .
@@ -41,15 +43,15 @@ Inspect the CLI:
 uv run affetch --help
 ```
 
-## Docs Workflow
+## Docs
 
-Serve docs locally:
+Serve the docs locally:
 
 ```bash
 uv run --group docs mkdocs serve --config-file mkdocs.yml --dev-addr localhost:8000
 ```
 
-Build docs in strict mode:
+Build the docs in strict mode:
 
 ```bash
 uv run --group docs mkdocs build --config-file mkdocs.yml --clean --strict
@@ -57,7 +59,9 @@ uv run --group docs mkdocs build --config-file mkdocs.yml --clean --strict
 
 ## Project Layout
 
-- `affetch/`: package source
-- `tests/`: test suite
-- `docs/`: documentation site
-- `pyproject.toml`: package metadata and tooling configuration
+| Path | Purpose |
+| --- | --- |
+| `affetch/` | Package source |
+| `tests/` | Test suite |
+| `docs/` | Documentation site |
+| `pyproject.toml` | Package metadata and tool configuration |

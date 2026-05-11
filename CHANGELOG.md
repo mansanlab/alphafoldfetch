@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.0.2
+
+- Tightened CLI validation for file types, output paths, and download/write concurrency options.
+- Improved FASTA input handling for uppercase suffixes and cleaner missing-file errors.
+- Surfaced structure write failures from worker threads instead of allowing them to be ignored.
+- Reduced URL batching memory use by chunking iterables directly.
+
 ## Version 1.0.1
 
 - Updated github pages to compile correctly after removing some GitHub Actions.

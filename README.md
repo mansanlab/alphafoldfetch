@@ -2,29 +2,72 @@
 
 # AlphaFoldFetch
 
-AlphaFoldFetch is a command-line tool for downloading AlphaFold structure files from UniProt IDs and UniProt FASTA files.
+AlphaFoldFetch is a small command-line tool for downloading AlphaFold structure files from UniProt accessions or UniProt-style FASTA files.
 
-It is meant for fast batch workflows:
+It is built for quick one-off downloads and simple batch workflows:
 
-- download one or many structure in one command
-- choose any combination of PDB, CIF, or gzipped outputs
-- tune concurrency for larger downloads
+- pass one ID, many IDs, FASTA files, or stdin
+- download PDB, CIF, or both
+- optionally gzip the saved files
+- tune concurrency for larger jobs
+
+## Benchmark
+
+Local benchmark against the AlphaFold *Homo sapiens* proteome with 47,172 gzipped structures (pdb + cif).
+
+![benchmark](docs/assets/images/benchmark.png)
+
 
 ## Install
 
-Run it without installing:
+Run once with `uvx`:
 
 ```bash
 uvx --from AlphaFoldFetch affetch P11388
 ```
 
-Install the CLI with `uv`:
+Or install the `affetch` command:
 
 ```bash
 uv tool install AlphaFoldFetch
 ```
 
-## CLI Summary
+AlphaFoldFetch requires Python 3.11 or newer.
+
+## Quick Start
+
+Download the default outputs for one UniProt accession:
+
+```bash
+affetch P11388
+```
+
+Download several accessions:
+
+```bash
+affetch P11388 Q01320 P41516
+```
+
+Write files to an existing directory:
+
+```bash
+mkdir -p structures
+affetch -o structures P11388
+```
+
+Download an uncompressed PDB only:
+
+```bash
+affetch -f p P11388
+```
+
+Read IDs from stdin:
+
+```bash
+printf "P11388\nQ01320\n" | affetch -
+```
+
+## Usage
 
 ```bash
 affetch [OPTIONS] UNIPROT...
@@ -34,20 +77,20 @@ Arguments:
 
 - `UNIPROT...`: UniProt IDs, FASTA files, or `-` for stdin
 
-Options:
+Common options:
 
-- `--output`, `-o`: output directory
-- `--file-type`, `-f`: any combination of `p`, `c`, and `z`
-- `--model`, `-m`: AlphaFold model version `1` through `6`
-- `--n-sync`: concurrent download requests
-- `--n-save`: file writes submitted per batch
+- `--output`, `-o`: output directory, default: current directory
+- `--file-type`, `-f`: any combination of `p`, `c`, and `z`, default: `pcz`
+- `--model`, `-m`: AlphaFold model version, default: `6`
+- `--n-sync`: concurrent download requests, default: `50`
+- `--n-save`: file writes submitted per batch, default: `500`
 
 ## Input Rules
 
 AlphaFoldFetch accepts:
 
-- raw UniProt accessions like `P11388`
-- text that contains a valid UniProt accession
+- UniProt accessions like `P11388`
+- strings that contain a valid UniProt accession
 - FASTA files ending in `.fasta`, `.fas`, `.fa`, or `.faa`
 - `-` to read whitespace-separated input from stdin
 
@@ -55,67 +98,60 @@ FASTA parsing only keeps validated UniProt IDs from header lines.
 
 ## Output Rules
 
-The default file-type value is `pcz`, which means:
+The `--file-type` option is a compact set of letters:
 
-- `p`: PDB output
-- `c`: CIF output
-- `z`: gzip compression
+- `p`: save PDB files
+- `c`: save CIF files
+- `z`: gzip the selected outputs
 
-So the default behavior downloads both PDB and CIF files as gzip outputs.
+The default value is `pcz`, so `affetch P11388` downloads gzipped PDB and CIF files for AlphaFold model 6:
 
-### Examples
-
-Single AlphaFold structure
-```bash
-affetch P11388
+```text
+AF-P11388-F1-model_v6.pdb.gz
+AF-P11388-F1-model_v6.cif.gz
 ```
 
-Multiple AlphaFold structures
-```bash
-affetch P11388 Q01320 P41516
-```
+Examples:
 
-Structures from a single UniProt FASTA file
+- `-f p`: uncompressed PDB only
+- `-f c`: uncompressed CIF only
+- `-f pc`: uncompressed PDB and CIF
+- `-f pz`: gzipped PDB only
+- `-f cz`: gzipped CIF only
+
+The output directory must already exist. IDs without an available AlphaFold file are skipped.
+
+## FASTA Files
+
+Download structures from one or more UniProt FASTA files:
+
 ```bash
 affetch UP000005640_9606.fasta
-```
-
-Multiple UniProt FASTA files
-```bash
-affetch UP000007305_4577.fasta UP000005640_9606.fasta UP000000625_83333.fasta
-```
-*First obtain these FASTA files from UniProt*
-
-Multiple custom FASTA files
-```bash
 affetch plant_pgks.fasta mammalian_pgks.fasta bacterial_pgks.fasta
 ```
-*Input files must be in the UniProt FASTA file format*
 
-Unzipped PDB file
-```bash
-affetch -f p P11388
-```
-*Default will dowload zipped PDB and CIF files for all entries*
+Only header lines are scanned for UniProt accessions.
 
-Redirect output to a directory
-```bash
-mkdir human_top2a && affetch -o ./human_top2a P11388
-```
+## Pipelines
 
-EBI AlphaFold Download data - Search Results CSV File
+From an AlphaFold DB search results CSV:
+
 ```bash
 tail -n +2 results-csv.csv | while IFS='-' read -r f1 f2 f3; do echo $f2; done | affetch -
 ```
 
-Don't know the UniProt ID? Use [getSequence] and pipe into `affetch`
+From [getSequence](https://github.com/alexholehouse/getSequence):
+
 ```bash
 getseq human top2a, mouse top2a, rat top2a | affetch -
 ```
-*Pipe input arguments must be indicated with a dash `-`*
 
+Remember to pass `-` when reading IDs from stdin.
 
-For more information, read the [docs](https://mansanlab.github.io/alphafoldfetch/)
+## More Information
+
+- Documentation: <https://mansanlab.github.io/alphafoldfetch/>
+- Issues: <https://github.com/mansanlab/alphafoldfetch/issues>
 
 ## Credits
 

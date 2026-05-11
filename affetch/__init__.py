@@ -3,7 +3,7 @@ from importlib.metadata import PackageNotFoundError, version
 __version__: str
 
 try:
-    __version__ = version('affetch')
+    __version__ = version('AlphaFoldFetch')
 except PackageNotFoundError:
     __version__ = 'unknown'
 finally:
